@@ -2,17 +2,28 @@ package xyz.hyperreal.npm_plugin
 
 import java.nio.file.{Files, Paths, StandardCopyOption}
 
+import collection.JavaConverters._
+
 object Main extends App {
 
-  def makeNpmPackage(dstpath: String,
-                     name: String,
+  def makeNpmPackage(name: String,
                      version: String,
                      description: String,
                      licence: String,
                      deps: List[(String, String)],
                      devDeps: List[(String, String)],
                      jspath: String) = {
-    val dst = Paths.get(dstpath)
+    val target = Paths.get("target")
+    val src =
+      Files.walk(target).iterator.asScala find { p =>
+        p.toString endsWith "-opt.js"
+      } match {
+        case None =>
+          sys.error("couldn't find a compiler output file ending in '-opt.js'")
+        case Some(js) => js
+      }
+
+    val dst = target resolve "npm"
 
     if (Files.exists(dst) && !Files.isDirectory(dst))
       sys.error(s"destination path already exists but is not a directory: $dst")
@@ -48,14 +59,11 @@ object Main extends App {
          |}
          |""".trim.stripMargin
 
-    Files.write(packageJson, contents.getBytes(io.Codec.UTF8.charSet))
-    Files.copy(Paths.get(jspath),
-               dst resolve "index.js",
-               StandardCopyOption.REPLACE_EXISTING)
+    Files.writeString(packageJson, contents)
+    Files.copy(src, dst resolve "index.js", StandardCopyOption.REPLACE_EXISTING)
   }
 
-  makeNpmPackage("./target/npm",
-                 "test",
+  makeNpmPackage("test",
                  "1.2.3",
                  "test package",
                  "ISC",
