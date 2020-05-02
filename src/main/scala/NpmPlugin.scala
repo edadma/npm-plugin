@@ -20,51 +20,58 @@ object NpmPlugin extends AutoPlugin {
   override lazy val projectSettings = Seq(
     npmPackage := {
       val name = Keys.name.value
+      val src = Keys.sourceDirectory.value
       val version = Keys.version.value
       val description = Keys.description.value
       val licence = Keys.licenses.value.head._1
       val target = Keys.target.value.toPath
-
-      val src =
+      val out = s"$name-opt.js"
+      val emitted =
         Files.walk(target).iterator.asScala find { p =>
-          p.toString endsWith "-opt.js"
+          p.getFileName.toString == out
         } match {
           case None =>
-            sys.error(
-              "couldn't find a compiler output file ending in '-opt.js'")
-          case Some(js) => js
+            sys.error(s"Couldn't find compiler output file '$out'")
+          case Some(js) =>
+            println(s"Found apparent compiler output file '$js")
+            js
         }
-      val deps =
-        Files.walk(target).iterator.asScala find { p =>
-          p.toString endsWith "package.json"
-        } match {
-          case None =>
-            sys.error("couldn't find a 'package.json' file")
-          case Some(pkg) =>
-            (Json.parse(Files.readString(pkg)) \ "dependencies").get
-              .asInstanceOf[JsObject]
-              .fields map {
-              case (k, v) => (k, v.as[String])
-            } toList
-        }
-
+      val emittedFolder = emitted.getParent
       val dst = target resolve "npm"
+      val emittedPkg = emittedFolder resolve "package.json"
+
+      if (!Files.exists(emittedPkg))
+        sys.error(
+          s"Compiler generated 'package.json' file not found under '$emittedFolder'")
+
+      val deps =
+        (Json.parse(Files.readString(emittedPkg)) \ "dependencies").get
+          .asInstanceOf[JsObject]
+          .fields map {
+          case (k, v) => (k, v.as[String])
+        } toList
 
       if (Files.exists(dst) && !Files.isDirectory(dst))
         sys.error(
-          s"destination path already exists but is not a directory: $dst")
+          s"Destination path already exists but is not a directory: $dst")
 
-      if (!Files.exists(dst))
+      val exists = Files.exists(dst)
+
+      if (!exists)
         Files.createDirectories(dst)
 
       val packageJson = dst resolve "package.json"
+      val indexjs = dst resolve "index.js"
 
-      def depsmap(d: List[(String, String)]) =
-        d map { case (p, v) => s""""$p": "$v"""" } mkString ",\n    "
+      if (!Files.exists(indexjs) || Files
+            .getLastModifiedTime(indexjs)
+            .compareTo(Files.getLastModifiedTime(emitted)) < 0) {
+        println(
+          s"${if (exists) "Updating" else "Creating"} NPM package at '$dst''")
 
-      val depsMembers = depsmap(deps)
-      val contents =
-        s"""
+        val depsMembers = deps map { case (p, v) => s""""$p": "$v"""" } mkString ",\n    "
+        val contents =
+          s"""
          |{
          |  "name": "$name",
          |  "version": "$version",
@@ -78,16 +85,17 @@ object NpmPlugin extends AutoPlugin {
          |  "dependencies": {
          |    $depsMembers
          |  },
-         |  "devDependencies": {
-         |
-         |  }
+         |  "devDependencies": {}
          |}
          |""".trim.stripMargin
 
-      Files.writeString(packageJson, contents)
-      Files.copy(src,
-                 dst resolve "index.js",
-                 StandardCopyOption.REPLACE_EXISTING)
+        Files.writeString(packageJson, contents)
+        Files.copy(emitted, indexjs, StandardCopyOption.REPLACE_EXISTING)
+        Files.copy(src.toPath resolve "index.d.ts",
+                   dst resolve "index.d.ts",
+                   StandardCopyOption.REPLACE_EXISTING)
+      } else
+        println(s"NPM package at '$dst' is up-to-date")
     }
   )
 
