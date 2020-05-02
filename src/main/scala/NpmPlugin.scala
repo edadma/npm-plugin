@@ -1,7 +1,7 @@
 package xyz.hyperreal.npm_plugin
 
-import java.nio.file.{Files, Paths, StandardCopyOption}
-
+import java.nio.file.{Files, StandardCopyOption}
+import sys.process._
 import collection.JavaConverters._
 
 import play.api.libs.json._
@@ -10,6 +10,7 @@ import sbt._
 object NpmPlugin extends AutoPlugin {
 
   object autoImport {
+    val npmPublish = taskKey[Unit]("Publish NPM package")
     val npmPackage = taskKey[Unit]("Create NPM package")
   }
 
@@ -18,6 +19,13 @@ object NpmPlugin extends AutoPlugin {
   override def trigger = allRequirements
 
   override lazy val projectSettings = Seq(
+    npmPublish := {
+      npmPackage.value
+
+      val dst = Keys.target.value.toPath resolve "npm"
+
+      Process("npm publish", dst.toFile) !
+    },
     npmPackage := {
       val name = Keys.name.value
       val src = Keys.sourceDirectory.value
@@ -33,7 +41,7 @@ object NpmPlugin extends AutoPlugin {
           case None =>
             sys.error(s"Couldn't find compiler output file '$out'")
           case Some(js) =>
-            println(s"Found apparent compiler output file '$js")
+            println(s"Found apparent compiler output file '$js'")
             js
         }
       val emittedFolder = emitted.getParent
@@ -67,7 +75,7 @@ object NpmPlugin extends AutoPlugin {
             .getLastModifiedTime(indexjs)
             .compareTo(Files.getLastModifiedTime(emitted)) < 0) {
         println(
-          s"${if (exists) "Updating" else "Creating"} NPM package at '$dst''")
+          s"${if (exists) "Updating" else "Creating"} NPM package at '$dst'")
 
         val depsMembers = deps map { case (p, v) => s""""$p": "$v"""" } mkString ",\n    "
         val contents =
