@@ -19,10 +19,10 @@ object NpmPlugin extends AutoPlugin {
 
   override lazy val projectSettings = Seq(
     npmPackage := {
-      val nameval = Keys.name.value
-      val versionval = Keys.version.value
-      val descriptionval = Keys.description.value
-      val licenceval = Keys.licenses.value.head._1
+      val name = Keys.name.value
+      val version = Keys.version.value
+      val description = Keys.description.value
+      val licence = Keys.licenses.value.head._1
       val target = Keys.target.value.toPath
 
       val src =
@@ -66,15 +66,15 @@ object NpmPlugin extends AutoPlugin {
       val contents =
         s"""
          |{
-         |  "name": "$nameval",
-         |  "version": "$versionval",
-         |  "description": "$descriptionval",
+         |  "name": "$name",
+         |  "version": "$version",
+         |  "description": "$description",
          |  "main": "index.js",
          |  "scripts": {
          |    "test": "echo \\"Error: no test specified\\" && exit 1"
          |  },
          |  "author": "",
-         |  "license": "$licenceval",
+         |  "license": "$licence",
          |  "dependencies": {
          |    $depsMembers
          |  },
