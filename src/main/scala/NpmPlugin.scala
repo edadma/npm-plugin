@@ -12,7 +12,7 @@ object NpmPlugin extends AutoPlugin {
   object autoImport {
     val npmPublish = taskKey[Unit]("Publish an NPM package")
     val npmPack = taskKey[Unit]("Pack an NPM package")
-    val npmCreate = taskKey[Unit]("Create an NPM package")
+    val npmBuild = taskKey[Unit]("Build an NPM package")
   }
 
   import autoImport._
@@ -26,7 +26,7 @@ object NpmPlugin extends AutoPlugin {
 
   override lazy val projectSettings = Seq(
     npmPublish := {
-      npmCreate.value
+      npmBuild.value
 
       val name = Keys.name.value
       val dst = Keys.target.value.toPath resolve "npm"
@@ -45,13 +45,13 @@ object NpmPlugin extends AutoPlugin {
       Process("npm publish", dst.toFile) !
     },
     npmPack := {
-      npmCreate.value
+      npmBuild.value
 
       val dst = Keys.target.value.toPath resolve "npm"
 
       Process("npm pack", dst.toFile) !
     },
-    npmCreate := {
+    npmBuild := {
       val name = Keys.name.value
       val src = Keys.sourceDirectory.value.toPath
       val build = src.getParent
