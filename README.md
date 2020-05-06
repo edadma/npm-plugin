@@ -9,7 +9,7 @@ Usage
 Add the following lines to your `plugins.sbt`
 
     resolvers += Resolver.bintrayRepo("edadma", "sbt-plugins")
-    addSbtPlugin("xyz.hyperreal" % "npm-plugin" % "0.1.7")
+    addSbtPlugin("xyz.hyperreal" % "npm-plugin" % "0.1.8")
     
 Tasks
 -----

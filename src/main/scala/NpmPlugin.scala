@@ -54,7 +54,7 @@ object NpmPlugin extends AutoPlugin {
     npmBuild := {
       val name = Keys.name.value
       val src = Keys.sourceDirectory.value.toPath
-      val build = src.getParent
+      val build = src.getParent resolve "build.sbt"
       val version = Keys.version.value
       val description = Keys.description.value
       val licence = Keys.licenses.value.head._1
