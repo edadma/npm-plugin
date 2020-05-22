@@ -57,6 +57,8 @@ object NpmPlugin extends AutoPlugin {
       val name = replace(Keys.name.value)
       val src = Keys.sourceDirectory.value.toPath
       val build = src.getParent resolve "build.sbt"
+      val readme = src.getParent resolve "README.md"
+      val npmReadme = src.getParent resolve "NPM-README.md"
       val version = Keys.version.value
       val description = Keys.description.value
       val licence = Keys.licenses.value.head._1
@@ -81,6 +83,13 @@ object NpmPlugin extends AutoPlugin {
           else
             fullOpt.get
         }
+      val readmeToCopy =
+        if (Files.exists(npmReadme))
+          Some(npmReadme)
+        else if (Files.exists(readme))
+          Some(readme)
+        else
+          None
 
       println(s"""Found a compiler output file '$emitted'""")
 
@@ -116,6 +125,7 @@ object NpmPlugin extends AutoPlugin {
 
       val packageJson = dst resolve "package.json"
       val indexjs = dst resolve "index.js"
+      val readmeDst = dst resolve "README.md"
 
       if (!Files.exists(indexjs) || Files
             .getLastModifiedTime(indexjs)
@@ -147,6 +157,12 @@ object NpmPlugin extends AutoPlugin {
 
         Files.writeString(packageJson, contents)
         Files.copy(emitted, indexjs, StandardCopyOption.REPLACE_EXISTING)
+
+        if (readmeToCopy isDefined)
+          Files.copy(readmeToCopy.get,
+                     readmeDst,
+                     StandardCopyOption.REPLACE_EXISTING)
+
         Files.copy(declarationFile,
                    dst resolve "index.d.ts",
                    StandardCopyOption.REPLACE_EXISTING)
