@@ -112,7 +112,7 @@ object NpmPlugin extends AutoPlugin {
           .asInstanceOf[JsObject]
           .fields map {
           case (k, v) => (k, v.as[String])
-        } toList
+        } filterNot (_._1 == "typescript") toList
 
       if (Files.exists(dst) && !Files.isDirectory(dst))
         sys.error(
