@@ -129,7 +129,7 @@ object NpmPlugin extends AutoPlugin {
         val contents =
           s"""
          |{
-         |  "name": "$name",
+         |  "name": "${Keys.name.value}",
          |  "version": "$version",
          |  "description": "$description",
          |  "main": "index.js",
