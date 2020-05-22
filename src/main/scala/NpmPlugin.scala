@@ -24,11 +24,13 @@ object NpmPlugin extends AutoPlugin {
       p.getFileName.toString == filename
     }
 
+  def replace(s: String) = s.replace('@', '-').replace('/', '-')
+
   override lazy val projectSettings = Seq(
     npmPublish := {
       npmBuild.value
 
-      val name = Keys.name.value
+      val name = replace(Keys.name.value)
       val dst = Keys.target.value.toPath resolve "npm"
       val tarballs =
         Files.walk(dst).iterator.asScala filter { p =>
@@ -52,7 +54,7 @@ object NpmPlugin extends AutoPlugin {
       Process("npm pack", dst.toFile) !
     },
     npmBuild := {
-      val name = Keys.name.value
+      val name = replace(Keys.name.value)
       val src = Keys.sourceDirectory.value.toPath
       val build = src.getParent resolve "build.sbt"
       val version = Keys.version.value
