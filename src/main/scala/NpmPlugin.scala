@@ -44,7 +44,7 @@ object NpmPlugin extends AutoPlugin {
         Files.delete(t)
       }
 
-      Process("npm publish", dst.toFile) !
+      Process("npm publish --access public", dst.toFile) !
     },
     npmPack := {
       npmBuild.value

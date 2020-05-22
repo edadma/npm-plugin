@@ -1,6 +1,6 @@
 name := "npm-plugin"
 
-version := "0.1.10"
+version := "0.1.11"
 
 scalaVersion := "2.12.11" // don't change (sbt 1.x uses Scala 2.12.x)
 
