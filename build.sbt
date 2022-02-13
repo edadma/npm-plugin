@@ -1,8 +1,8 @@
 name := "npm-plugin"
 
-version := "0.1.13"
+version := "0.1.14"
 
-scalaVersion := "2.12.11" // don't change (sbt 1.x uses Scala 2.12.x)
+scalaVersion := "2.12.15" // don't change (sbt 1.x uses Scala 2.12.x)
 
 sbtPlugin := true
 
@@ -10,7 +10,11 @@ enablePlugins(SbtPlugin)
 
 scalacOptions ++= Seq( "-deprecation", "-feature", "-unchecked", "-language:postfixOps", "-language:implicitConversions", "-language:existentials" )
 
-organization := "xyz.hyperreal"
+organization := "io.github.edadma"
+
+githubOwner := "edadma"
+
+githubRepository := "npm-plugin"
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
@@ -20,27 +24,10 @@ libraryDependencies ++= Seq(
     "com.typesafe.play" %% "play-json" % "2.8.1"
 )
 
-mainClass in (Compile, run) := Some( "xyz.hyperreal." + name.value.replace('-', '_') + ".Main" )
+mainClass := Some("Main")
 
 publishMavenStyle := true
 
-publishArtifact in Test := false
-
-pomIncludeRepository := { _ => false }
+Test / publishArtifact := false
 
 licenses := Seq("ISC" -> url("https://opensource.org/licenses/ISC"))
-
-homepage := Some(url("https://github.com/edadma/" + name.value))
-
-pomExtra :=
-  <scm>
-    <url>git@github.com:edadma/{name.value}.git</url>
-    <connection>scm:git:git@github.com:edadma/{name.value}.git</connection>
-  </scm>
-  <developers>
-    <developer>
-      <id>edadma</id>
-      <name>Edward A. Maxedon, Sr.</name>
-      <url>https://github.com/edadma</url>
-    </developer>
-  </developers>
